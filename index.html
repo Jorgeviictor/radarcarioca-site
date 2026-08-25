@@ -704,7 +704,9 @@
       <span class="eyebrow">Para motoristas de app no Rio</span>
       <h1><span class="hl-safe">Lucro real.</span> <span class="hl-risk">Risco na tela.</span> Decisão na hora.</h1>
       <p class="hero-sub">O Radar Carioca lê a oferta de corrida do Uber e da 99 assim que ela aparece, calcula quanto sobra de verdade depois do custo — e avisa se o destino cai numa área de risco monitorada. Você decide em segundos, sem tirar o olho da estrada.</p>
-      <form class="hero-form" data-waitlist-form>
+      <form class="hero-form" data-waitlist-form action="https://formspree.io/f/xppavjwz" method="POST">
+        <input type="hidden" name="_subject" value="Radar Carioca — lista de espera">
+        <input type="hidden" name="origem" value="hero">
         <input class="field" type="email" name="email" placeholder="seu@email.com" required aria-label="Seu e-mail">
         <button class="btn btn-primary" type="submit">Quero ser avisado</button>
       </form>
@@ -899,7 +901,9 @@
         <p class="lede">Deixe seu e-mail e a gente avisa assim que abrir para os primeiros motoristas testarem.</p>
       </div>
       <div class="cta-form">
-        <form class="hero-form" data-waitlist-form>
+        <form class="hero-form" data-waitlist-form action="https://formspree.io/f/xppavjwz" method="POST">
+          <input type="hidden" name="_subject" value="Radar Carioca — lista de espera">
+          <input type="hidden" name="origem" value="cta-final">
           <input class="field" type="email" name="email" placeholder="seu@email.com" required aria-label="Seu e-mail">
           <button class="btn btn-primary" type="submit">Avise-me</button>
         </form>
@@ -929,20 +933,41 @@
     el.href = "mailto:" + email + "?subject=" + encodeURIComponent("Radar Carioca");
   });
 
-  /* ---------- waitlist forms -> mailto ---------- */
+  /* ---------- waitlist forms -> Formspree ---------- */
   document.querySelectorAll("[data-waitlist-form]").forEach(function (form) {
     form.addEventListener("submit", function (ev) {
       ev.preventDefault();
       var input = form.querySelector('input[type="email"]');
       var status = form.parentElement.querySelector("[data-status]") || form.nextElementSibling;
+      var btn = form.querySelector('button[type="submit"]');
       var value = input.value.trim();
       if (!value) return;
-      var subject = encodeURIComponent("Radar Carioca — lista de espera");
-      var body = encodeURIComponent("Quero ser avisado quando o Radar Carioca lançar.\n\nMeu e-mail: " + value);
-      window.location.href = "mailto:" + email + "?subject=" + subject + "&body=" + body;
-      if (status) {
-        status.textContent = "Abrindo seu app de e-mail com a mensagem pronta — é só enviar.";
-      }
+      var originalLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Enviando...";
+      if (status) status.textContent = "";
+      fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" }
+      }).then(function (res) {
+        if (res.ok) {
+          if (status) status.textContent = "Prontinho! Você está na lista — a gente avisa assim que o app lançar.";
+          form.reset();
+        } else {
+          return res.json().then(function (data) {
+            var msg = data && data.errors && data.errors.length
+              ? data.errors.map(function (e) { return e.message; }).join(", ")
+              : "não deu pra enviar agora";
+            if (status) status.textContent = "Algo deu errado (" + msg + "). Tenta de novo?";
+          });
+        }
+      }).catch(function () {
+        if (status) status.textContent = "Sem conexão agora. Tenta de novo em instantes.";
+      }).finally(function () {
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      });
     });
   });
 
