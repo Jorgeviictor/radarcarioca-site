@@ -495,6 +495,140 @@
   .how-item h3 { text-transform: none; font-size: var(--fs-h3); margin-bottom: 0.5rem; }
   .how-item p { color: var(--ink-muted); max-width: 58ch; }
 
+  /* ---------- app screens ---------- */
+  .screens { border-bottom: 1px solid var(--border); }
+  .screens-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.4rem, 3vw, 2.4rem);
+  }
+  @media (max-width: 900px) {
+    .screens-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 620px) {
+    .screens-grid {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: 76%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(var(--pad) * -1);
+      padding-inline: var(--pad);
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .screens-grid::-webkit-scrollbar { display: none; }
+    .screen-card { scroll-snap-align: center; }
+  }
+  .screen-card {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .phone {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 1.9rem;
+    padding: 0.55rem;
+    box-shadow: 0 24px 60px -26px var(--shadow);
+    position: relative;
+    cursor: zoom-in;
+    transition: transform 0.18s ease, border-color 0.2s ease;
+  }
+  .phone::before {
+    content: "";
+    position: absolute;
+    top: 0.55rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32%;
+    height: 0.4rem;
+    background: var(--surface-3);
+    border-radius: 0 0 0.5rem 0.5rem;
+    z-index: 2;
+  }
+  .phone:hover, .phone:focus-visible {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    outline: none;
+  }
+  .phone img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 1.45rem;
+  }
+  .screen-label {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-muted);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: clamp(1rem, 4vw, 3rem);
+    background: color-mix(in srgb, #000 85%, transparent);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+  .lightbox.open { opacity: 1; pointer-events: auto; }
+  .lightbox img {
+    max-width: min(400px, 90vw);
+    max-height: 80vh;
+    width: auto;
+    height: auto;
+    border-radius: 1.2rem;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.7);
+  }
+  .lightbox-label {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .lightbox-close {
+    position: absolute;
+    top: clamp(0.8rem, 3vw, 1.6rem);
+    right: clamp(0.8rem, 3vw, 1.6rem);
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .lightbox-close:hover, .lightbox-close:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent);
+    outline: none;
+  }
+
   /* card demo */
   .card-demo { background: var(--surface); border-bottom: 1px solid var(--border); }
   .card-demo-grid {
@@ -678,6 +812,7 @@
   @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; transition: none; }
     .hud-top .live::before { animation: none; }
+    .phone, .lightbox { transition: none; }
   }
 </style>
 </head>
@@ -829,6 +964,54 @@
           <p>Cruza o destino da corrida com áreas de risco monitoradas e avisa na hora, direto na tela, se pedir atenção redobrada.</p>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="screens" id="telas">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Dentro do app</span>
+      <h2>O app por dentro</h2>
+      <p class="lede">As telas que o motorista usa no dia a dia — do painel rápido ao mapa de áreas de risco, ao controle de combustível e ao recibo de corrida particular.</p>
+    </div>
+    <div class="screens-grid reveal">
+      <figure class="screen-card">
+        <button class="phone" type="button" data-screen aria-label="Ampliar tela: Painel do dia">
+          <img src="assets/screens/01-painel.jpg" alt="Painel do Radar Carioca com meta de R$ por km, combustível e atalhos rápidos" loading="lazy" decoding="async" width="720" height="1600">
+        </button>
+        <figcaption class="screen-label">Painel do dia</figcaption>
+      </figure>
+      <figure class="screen-card">
+        <button class="phone" type="button" data-screen aria-label="Ampliar tela: Mapa de áreas de risco">
+          <img src="assets/screens/02-mapa-risco.jpg" alt="Mapa do Rio de Janeiro com áreas de risco e zonas de atenção destacadas" loading="lazy" decoding="async" width="720" height="1600">
+        </button>
+        <figcaption class="screen-label">Mapa de áreas de risco</figcaption>
+      </figure>
+      <figure class="screen-card">
+        <button class="phone" type="button" data-screen aria-label="Ampliar tela: Histórico com lucro real">
+          <img src="assets/screens/03-historico.jpg" alt="Histórico de corridas com valor bruto, lucro real e R$ por km de cada corrida" loading="lazy" decoding="async" width="720" height="1600">
+        </button>
+        <figcaption class="screen-label">Histórico com lucro real</figcaption>
+      </figure>
+      <figure class="screen-card">
+        <button class="phone" type="button" data-screen aria-label="Ampliar tela: Controle de combustível">
+          <img src="assets/screens/04-combustivel.jpg" alt="Tela de controle de combustível com total gasto e registro de abastecimento" loading="lazy" decoding="async" width="720" height="1600">
+        </button>
+        <figcaption class="screen-label">Controle de combustível</figcaption>
+      </figure>
+      <figure class="screen-card">
+        <button class="phone" type="button" data-screen aria-label="Ampliar tela: Corrida particular e recibo">
+          <img src="assets/screens/05-corrida-particular.jpg" alt="Ficha de corrida particular com origem, destino, forma de cobrança e geração de recibo" loading="lazy" decoding="async" width="720" height="1600">
+        </button>
+        <figcaption class="screen-label">Corrida particular + recibo</figcaption>
+      </figure>
+      <figure class="screen-card">
+        <button class="phone" type="button" data-screen aria-label="Ampliar tela: Locais próximos na rota">
+          <img src="assets/screens/06-locais-proximos.jpg" alt="Lista de locais próximos: postos com GNV, sanitários e lava-rápidos" loading="lazy" decoding="async" width="720" height="1600">
+        </button>
+        <figcaption class="screen-label">Locais próximos na rota</figcaption>
+      </figure>
     </div>
   </div>
 </section>
@@ -1021,6 +1204,59 @@
     hudIo.observe(hud);
   } else {
     runCount();
+  }
+
+  /* ---------- app screens lightbox ---------- */
+  var screenBtns = document.querySelectorAll("[data-screen]");
+  if (screenBtns.length) {
+    var lb = document.createElement("div");
+    lb.className = "lightbox";
+    lb.setAttribute("role", "dialog");
+    lb.setAttribute("aria-modal", "true");
+    lb.setAttribute("aria-label", "Tela do app ampliada");
+    lb.innerHTML =
+      '<button class="lightbox-close" type="button" aria-label="Fechar">×</button>' +
+      '<img alt="">' +
+      '<p class="lightbox-label"></p>';
+    document.body.appendChild(lb);
+
+    var lbImg = lb.querySelector("img");
+    var lbLabel = lb.querySelector(".lightbox-label");
+    var lbClose = lb.querySelector(".lightbox-close");
+    var lastFocus = null;
+
+    function openLightbox(btn) {
+      var img = btn.querySelector("img");
+      var cap = btn.parentElement.querySelector(".screen-label");
+      lbImg.src = img.currentSrc || img.src;
+      lbImg.alt = img.alt;
+      lbLabel.textContent = cap ? cap.textContent : "";
+      lb.classList.add("open");
+      document.body.style.overflow = "hidden";
+      lastFocus = btn;
+      lbClose.focus();
+    }
+
+    function closeLightbox() {
+      if (!lb.classList.contains("open")) return;
+      lb.classList.remove("open");
+      document.body.style.overflow = "";
+      lbImg.removeAttribute("src");
+      if (lastFocus) lastFocus.focus();
+    }
+
+    screenBtns.forEach(function (btn) {
+      btn.addEventListener("click", function () { openLightbox(btn); });
+    });
+    lbClose.addEventListener("click", closeLightbox);
+    lb.addEventListener("click", function (ev) {
+      if (ev.target === lb) closeLightbox();
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (!lb.classList.contains("open")) return;
+      if (ev.key === "Escape") closeLightbox();
+      if (ev.key === "Tab") { ev.preventDefault(); lbClose.focus(); }
+    });
   }
 
   /* ---------- radar sweep + TEVOX circuit texture ---------- */
