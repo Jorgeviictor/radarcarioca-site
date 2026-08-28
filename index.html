@@ -607,6 +607,58 @@
     text-wrap: balance;
   }
 
+  /* offer card explainer */
+  .offer-card-demo {
+    margin: 0 0 clamp(2.6rem, 5vw, 3.75rem);
+    display: grid;
+    grid-template-columns: minmax(0, 340px) 1fr;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: start;
+  }
+  @media (max-width: 760px) { .offer-card-demo { grid-template-columns: 1fr; } }
+  .offer-card-demo img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 20px 50px -24px var(--shadow);
+    position: sticky;
+    top: 6rem;
+  }
+  @media (max-width: 760px) {
+    .offer-card-demo img { position: static; }
+  }
+  .offer-card-lede {
+    color: var(--ink-muted);
+    margin-bottom: 1.1rem;
+  }
+  .offer-legend { margin: 0; display: flex; flex-direction: column; }
+  .offer-legend > div {
+    display: grid;
+    grid-template-columns: minmax(7rem, 9.5rem) 1fr;
+    gap: 0.35rem 1.2rem;
+    padding-block: 0.7rem;
+    border-top: 1px solid var(--border);
+  }
+  .offer-legend > div:last-child { border-bottom: 1px solid var(--border); }
+  @media (max-width: 440px) {
+    .offer-legend > div { grid-template-columns: 1fr; gap: 0.2rem; }
+  }
+  .offer-legend dt {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .offer-legend dd {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--ink-muted);
+    line-height: 1.55;
+  }
+  .offer-legend .hl-caution { color: var(--caution); }
+  .offer-legend .hl-danger { color: var(--danger); }
+
   .lightbox {
     position: fixed;
     inset: 0;
@@ -1009,6 +1061,60 @@
       <h2>O app por dentro</h2>
       <p class="lede">As telas que o motorista usa no dia a dia — do painel rápido ao mapa de áreas de risco, ao controle de combustível e ao recibo de corrida particular.</p>
     </div>
+
+    <figure class="offer-card-demo reveal">
+      <img src="assets/screens/card-oferta.jpg" alt="Card de leitura de oferta: destino seguro em Copacabana, R$ 3,75 por km, e lucro real de R$ 25,80" width="664" height="361">
+      <figcaption>
+        <p class="offer-card-lede">Assim que a corrida é oferecida, o Radar Carioca sobrepõe este card à tela do Uber ou da 99. O que cada informação quer dizer:</p>
+        <dl class="offer-legend">
+          <div>
+            <dt>Destino seguro</dt>
+            <dd>O destino foi cruzado com as áreas monitoradas e não cai em zona de risco. Fica <span class="hl-caution">amarelo</span> numa zona de atenção e <span class="hl-danger">vermelho</span> numa área a evitar.</dd>
+          </div>
+          <div>
+            <dt>Av. Atlântica, Copacabana</dt>
+            <dd>Endereço de destino, lido direto da oferta.</dd>
+          </div>
+          <div>
+            <dt>R$ 3,75 · R$/km</dt>
+            <dd>Valor bruto dividido pela distância. É o número que você compara com a sua meta de R$ por km — a seta para cima indica que está acima da meta.</dd>
+          </div>
+          <div>
+            <dt>R$ 0,94 · R$/min</dt>
+            <dd>Quanto a oferta rende por minuto de corrida.</dd>
+          </div>
+          <div>
+            <dt>R$ 56 · R$/hora</dt>
+            <dd>Projeção de ganho por hora se você mantivesse esse ritmo.</dd>
+          </div>
+          <div>
+            <dt>32 min · 8,0 km</dt>
+            <dd>Duração e distância estimadas até o destino.</dd>
+          </div>
+          <div>
+            <dt>R$ 30,00</dt>
+            <dd>Valor bruto da oferta — o que a plataforma está pagando pela corrida.</dd>
+          </div>
+          <div>
+            <dt>86%</dt>
+            <dd>Fatia do valor bruto que sobra como lucro depois dos custos.</dd>
+          </div>
+          <div>
+            <dt>0,7 L</dt>
+            <dd>Combustível estimado para a corrida, com o custo em reais ao lado.</dd>
+          </div>
+          <div>
+            <dt>Lucro R$ 25,80</dt>
+            <dd>O que de fato sobra: bruto menos combustível, a taxa da plataforma e o trecho até pegar o passageiro.</dd>
+          </div>
+          <div>
+            <dt>Barra verde</dt>
+            <dd>Medidor da corrida em relação à sua meta — quanto mais cheia e verde, melhor a corrida.</dd>
+          </div>
+        </dl>
+      </figcaption>
+    </figure>
+
     <div class="screens-carousel reveal">
       <div class="screens-grid" data-screens-track>
       <figure class="screen-card">
