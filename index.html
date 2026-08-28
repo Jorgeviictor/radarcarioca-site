@@ -497,28 +497,29 @@
 
   /* ---------- app screens ---------- */
   .screens { border-bottom: 1px solid var(--border); }
+  .screens-carousel { position: relative; }
   .screens-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(1.4rem, 3vw, 2.4rem);
+    grid-auto-flow: column;
+    grid-auto-columns: clamp(240px, 30vw, 300px);
+    gap: clamp(1.1rem, 2.5vw, 2rem);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--pad);
+    margin-inline: calc(var(--pad) * -1);
+    padding-inline: var(--pad);
+    padding-block: 0.4rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--pad), #000 calc(100% - var(--pad)), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--pad), #000 calc(100% - var(--pad)), transparent 100%);
   }
+  .screens-grid::-webkit-scrollbar { display: none; }
   @media (max-width: 900px) {
-    .screens-grid { grid-template-columns: repeat(2, 1fr); }
+    .screens-grid { grid-auto-columns: clamp(220px, 52vw, 300px); }
   }
   @media (max-width: 620px) {
-    .screens-grid {
-      grid-template-columns: none;
-      grid-auto-flow: column;
-      grid-auto-columns: 76%;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      margin-inline: calc(var(--pad) * -1);
-      padding-inline: var(--pad);
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .screens-grid::-webkit-scrollbar { display: none; }
-    .screen-card { scroll-snap-align: center; }
+    .screens-grid { grid-auto-columns: 80%; }
   }
   .screen-card {
     margin: 0;
@@ -526,6 +527,39 @@
     flex-direction: column;
     align-items: center;
     gap: 0.85rem;
+    scroll-snap-align: start;
+  }
+
+  .carousel-nav {
+    position: absolute;
+    top: 46%;
+    transform: translateY(-50%);
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(6px);
+    color: var(--ink);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    transition: border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  }
+  .carousel-nav:hover, .carousel-nav:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent);
+    outline: none;
+  }
+  .carousel-nav--prev { left: -0.6rem; }
+  .carousel-nav--next { right: -0.6rem; }
+  .carousel-nav[disabled] { opacity: 0; visibility: hidden; pointer-events: none; }
+  @media (hover: none), (max-width: 620px) {
+    .carousel-nav { display: none; }
   }
   .phone {
     appearance: none;
@@ -812,7 +846,7 @@
   @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; transition: none; }
     .hud-top .live::before { animation: none; }
-    .phone, .lightbox { transition: none; }
+    .phone, .lightbox, .carousel-nav { transition: none; }
   }
 </style>
 </head>
@@ -975,7 +1009,8 @@
       <h2>O app por dentro</h2>
       <p class="lede">As telas que o motorista usa no dia a dia — do painel rápido ao mapa de áreas de risco, ao controle de combustível e ao recibo de corrida particular.</p>
     </div>
-    <div class="screens-grid reveal">
+    <div class="screens-carousel reveal">
+      <div class="screens-grid" data-screens-track>
       <figure class="screen-card">
         <button class="phone" type="button" data-screen aria-label="Ampliar tela: Painel do dia">
           <img src="assets/screens/01-painel.jpg" alt="Painel do Radar Carioca com meta de R$ por km, combustível e atalhos rápidos" loading="lazy" decoding="async" width="720" height="1600">
@@ -1012,6 +1047,9 @@
         </button>
         <figcaption class="screen-label">Locais próximos na rota</figcaption>
       </figure>
+      </div>
+      <button class="carousel-nav carousel-nav--prev" type="button" data-screens-prev aria-label="Ver telas anteriores">‹</button>
+      <button class="carousel-nav carousel-nav--next" type="button" data-screens-next aria-label="Ver próximas telas">›</button>
     </div>
   </div>
 </section>
@@ -1204,6 +1242,41 @@
     hudIo.observe(hud);
   } else {
     runCount();
+  }
+
+  /* ---------- app screens carousel ---------- */
+  var screensTrack = document.querySelector("[data-screens-track]");
+  var screensPrev = document.querySelector("[data-screens-prev]");
+  var screensNext = document.querySelector("[data-screens-next]");
+  if (screensTrack && screensPrev && screensNext) {
+    function screensStep() {
+      var card = screensTrack.querySelector(".screen-card");
+      if (!card) return screensTrack.clientWidth * 0.8;
+      var gap = parseFloat(getComputedStyle(screensTrack).columnGap) || 0;
+      return card.getBoundingClientRect().width + gap;
+    }
+    function updateScreensNav() {
+      var maxScroll = screensTrack.scrollWidth - screensTrack.clientWidth - 2;
+      screensPrev.disabled = screensTrack.scrollLeft <= 0;
+      screensNext.disabled = screensTrack.scrollLeft >= maxScroll;
+    }
+    function nudge(dir) {
+      var max = screensTrack.scrollWidth - screensTrack.clientWidth;
+      var target = Math.max(0, Math.min(screensTrack.scrollLeft + dir * screensStep(), max));
+      try {
+        screensTrack.scrollTo({ left: target, behavior: reduceMotion ? "auto" : "smooth" });
+      } catch (e) {
+        screensTrack.scrollLeft = target;
+      }
+      setTimeout(updateScreensNav, 80);
+      setTimeout(updateScreensNav, 500);
+    }
+    screensPrev.addEventListener("click", function () { nudge(-1); });
+    screensNext.addEventListener("click", function () { nudge(1); });
+    screensTrack.addEventListener("scroll", updateScreensNav, { passive: true });
+    window.addEventListener("resize", updateScreensNav);
+    setTimeout(updateScreensNav, 200);
+    updateScreensNav();
   }
 
   /* ---------- app screens lightbox ---------- */
