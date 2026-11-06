@@ -1046,6 +1046,20 @@
   /* the bar fills segment by segment when the panel scrolls in */
   .js .breakdown .bd-bar span { transform: scaleX(0); transition: transform 0.6s var(--ease-out) calc(0.2s + var(--d, 0ms)); }
   .js .breakdown.in .bd-bar span { transform: none; }
+    .bd-trip { display: flex; gap: 1.2rem; font-size: 0.78rem; color: var(--ink-faint); margin-top: -0.1rem; }
+  .bd-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; margin-top: 1rem; }
+  .bd-stats div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.7rem 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--safe) 55%, transparent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--safe) 8%, transparent);
+  }
+  .bd-stats strong { color: var(--safe); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .bd-stats span { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); }
   .breakdown figcaption { margin-top: 0.9rem; font-size: 0.72rem; letter-spacing: 0.03em; color: var(--ink-faint); }
 
   .sim[hidden], .card-demo-grid[hidden] { display: none; }
@@ -1148,15 +1162,15 @@
       </div>
       <div class="hud-row">
         <span class="label">Corrida bruta</span>
-        <span class="val" data-count data-to="23.90">R$ 0,00</span>
+        <span class="val" data-count data-to="24.50">R$ 0,00</span>
       </div>
       <div class="hud-row">
-        <span class="label">Custo estimado</span>
-        <span class="val" data-count data-to="6.10">R$ 0,00</span>
+        <span class="label">Combustível</span>
+        <span class="val" data-count data-to="2.72">R$ 0,00</span>
       </div>
       <div class="hud-row total">
         <span class="label">Lucro real</span>
-        <span class="val" data-count data-to="17.80">R$ 0,00</span>
+        <span class="val" data-count data-to="21.78">R$ 0,00</span>
       </div>
       <div class="hud-badge">
         <span class="dot"></span>
@@ -1179,7 +1193,7 @@
         <li>
           <span class="num">01</span>
           <p class="stmt">O valor na tela não é o que sobra</p>
-          <p class="detail">A oferta mostra o bruto. Combustível, a taxa da plataforma e a distância até pegar o passageiro comem a margem — e isso não aparece em lugar nenhum.</p>
+          <p class="detail">A oferta mostra o bruto. O combustível da corrida come parte da margem — e quanto sobra, por km e por minuto, não aparece em lugar nenhum.</p>
         </li>
         <li>
           <span class="num">02</span>
@@ -1194,18 +1208,20 @@
       </ol>
 
       <figure class="breakdown reveal">
-        <div class="bd-row gross"><span>O que a tela mostra</span><strong>R$ 23,90</strong></div>
-        <div class="bd-bar" role="img" aria-label="Dos R$ 23,90 da oferta, R$ 6,10 vão em custos e sobram R$ 17,80">
-          <span class="seg-net" style="--g:17.8"></span>
-          <span class="seg-fuel" style="--g:3.4; --d:120ms"></span>
-          <span class="seg-fee" style="--g:1.5; --d:200ms"></span>
-          <span class="seg-pickup" style="--g:1.2; --d:280ms"></span>
+        <div class="bd-row gross"><span>O que a tela mostra</span><strong>R$ 24,50</strong></div>
+        <div class="bd-trip"><span>7,3 km</span><span>18 min</span></div>
+        <div class="bd-bar" role="img" aria-label="Dos R$ 24,50 da oferta, R$ 2,72 vão em combustível e sobram R$ 21,78 de lucro">
+          <span class="seg-net" style="--g:21.78"></span>
+          <span class="seg-fuel" style="--g:2.72; --d:160ms"></span>
         </div>
-        <div class="bd-row"><span class="key key-fuel">Combustível</span><strong class="neg">− R$ 3,40</strong></div>
-        <div class="bd-row"><span class="key key-fee">Taxa da plataforma</span><strong class="neg">− R$ 1,50</strong></div>
-        <div class="bd-row"><span class="key key-pickup">Ida até o passageiro</span><strong class="neg">− R$ 1,20</strong></div>
-        <div class="bd-row net"><span class="key key-net">O que sobra de verdade</span><strong>R$ 17,80</strong></div>
-        <figcaption>Exemplo ilustrativo — o Radar Carioca faz essa conta sozinho, em cada oferta.</figcaption>
+        <div class="bd-row"><span class="key key-fuel">Combustível · 0,4 L × R$ 6,33</span><strong class="neg">− R$ 2,72</strong></div>
+        <div class="bd-row net"><span class="key key-net">Lucro</span><strong>R$ 21,78</strong></div>
+        <div class="bd-stats">
+          <div><strong>R$ 3,36</strong><span>R$/km</span></div>
+          <div><strong>R$ 1,36</strong><span>R$/min</span></div>
+          <div><strong>89%</strong><span>do valor</span></div>
+        </div>
+        <figcaption>Corrida real lida pelo app: 7,3 km, carro fazendo 17 km/L, combustível a R$ 6,33/L. O Radar Carioca faz essa conta sozinho, em cada oferta.</figcaption>
       </figure>
     </div>
   </div>
@@ -1289,7 +1305,7 @@
         <span class="step-no">02</span>
         <div>
           <h3>Calcula o lucro real</h3>
-          <p>Desconta combustível, a taxa da plataforma e a distância até você pegar o passageiro, e mostra o que realmente sobra no seu bolso — antes de você decidir.</p>
+          <p>Calcula o combustível da corrida pelo consumo do seu carro e o preço do litro, desconta do valor e mostra o lucro, o R$ por km e o R$ por minuto — antes de você decidir.</p>
         </div>
       </div>
       <div class="how-item reveal">
@@ -1346,7 +1362,7 @@
           </div>
           <div>
             <dt>86%</dt>
-            <dd>Fatia do valor bruto que sobra como lucro depois dos custos.</dd>
+            <dd>Fatia do valor bruto que sobra como lucro depois do combustível.</dd>
           </div>
           <div>
             <dt>0,7 L</dt>
@@ -1354,7 +1370,7 @@
           </div>
           <div>
             <dt>Lucro R$ 25,80</dt>
-            <dd>O que de fato sobra: bruto menos combustível, a taxa da plataforma e o trecho até pegar o passageiro.</dd>
+            <dd>O que de fato sobra: o valor bruto menos o combustível da corrida.</dd>
           </div>
           <div>
             <dt>Barra verde</dt>
@@ -1559,9 +1575,10 @@
 
   /* ---------- HUD: counts up, then cycles through example offers ---------- */
   var OFFERS = [
-    { state: "caution", vals: [23.90, 6.10, 17.80], badge: "Destino em zona de atenção — reforce o cuidado" },
-    { state: "safe", vals: [31.40, 7.85, 23.55], badge: "Destino sem alerta — boa corrida" },
-    { state: "danger", vals: [9.80, 6.35, 3.45], badge: "Abaixo da sua meta de R$/km — melhor recusar" }
+        // bruto, combustível (km ÷ 17 km/L × R$ 6,33/L), lucro
+    { state: "caution", vals: [24.50, 2.72, 21.78], badge: "Destino em zona de atenção — reforce o cuidado" },
+    { state: "safe", vals: [31.40, 4.47, 26.93], badge: "Destino sem alerta — boa corrida" },
+    { state: "danger", vals: [9.80, 2.61, 7.19], badge: "Abaixo da sua meta de R$/km — melhor recusar" }
   ];
   var hudState = OFFERS[0].state; // the radar below lights a blip to match
   var onHudState = null;
