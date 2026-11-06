@@ -6,6 +6,7 @@
 <title>Radar Carioca</title>
 <meta name="description" content="Radar Carioca: app para motoristas de Uber e 99 no Rio de Janeiro calcularem o lucro real da corrida e receberem alerta de áreas de risco em tempo real.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23060D1F'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23C9A84C' stroke-width='1.4' opacity='0.5'/%3E%3Ccircle cx='16' cy='16' r='6.5' fill='none' stroke='%23C9A84C' stroke-width='1.4' opacity='0.7'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23C9A84C'/%3E%3C/svg%3E">
+<script>document.documentElement.classList.add("js");</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
@@ -43,6 +44,8 @@
     --content-w: 1140px;
     --pad: clamp(1.25rem, 4vw, 3rem);
     --section-pad: clamp(4rem, 8vw, 7.5rem);
+
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   }
 
   @media (prefers-color-scheme: light) {
@@ -233,13 +236,16 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.16s var(--ease-out), background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
   .btn-primary {
     background: var(--accent);
     color: var(--accent-ink);
   }
-  .btn-primary:hover { transform: translateY(-1px); }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover { transform: translateY(-1px); }
+  }
+  .btn:active { transform: scale(0.97); transition-duration: 0.1s; }
   .btn-ghost {
     background: transparent;
     border-color: var(--border-strong);
@@ -408,6 +414,30 @@
     flex: none;
     box-shadow: 0 0 0.5em var(--caution);
   }
+  .hud-row.total .val { transition: color 0.3s ease; }
+  .hud[data-state="danger"] .hud-row.total .val { color: var(--danger); }
+  .hud-badge > span:last-child { transition: opacity 0.15s ease, transform 0.15s var(--ease-out); }
+  .hud-badge .dot { transition: background-color 0.3s ease, box-shadow 0.3s ease; }
+  .hud-badge.swap > span:last-child { opacity: 0; transform: translateY(4px); }
+  .hud[data-state="safe"] .hud-badge .dot { background: var(--safe); box-shadow: 0 0 0.5em var(--safe); }
+  .hud[data-state="danger"] .hud-badge .dot { background: var(--danger); box-shadow: 0 0 0.5em var(--danger); }
+  /* time to the next example offer — constant motion, so linear */
+  .hud-timer {
+    position: absolute;
+    left: 1.5rem;
+    right: 1.5rem;
+    bottom: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0.5;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .hud-timer.run { animation: hud-timer 4s linear forwards; }
+  .hud:hover .hud-timer,
+  .hud:focus-within .hud-timer,
+  .hud.paused .hud-timer { animation-play-state: paused; }
+  @keyframes hud-timer { to { transform: scaleX(1); } }
   .hud-caption {
     font-size: 0.72rem;
     color: var(--ink-faint);
@@ -431,12 +461,27 @@
     max-width: 52ch;
   }
 
-  .reveal {
-    opacity: 0;
-    transform: translateY(18px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+  /* hidden only under html.js (set inline in <head>): without JS the page just shows */
+  .reveal,
+  .reveal-stagger > * {
+    transition: opacity 0.5s var(--ease-out) var(--stagger, 0ms), transform 0.5s var(--ease-out) var(--stagger, 0ms);
   }
-  .reveal.in { opacity: 1; transform: none; }
+  .js .reveal,
+  .js .reveal-stagger > * { opacity: 0; transform: translateY(12px); }
+  /* a group stays put; its children enter one after another */
+  .js .reveal.reveal-stagger { opacity: 1; transform: none; }
+  .js .reveal.in,
+  .js .reveal-stagger.in > * { opacity: 1; transform: none; }
+  .reveal-stagger > :nth-child(2) { --stagger: 60ms; }
+  .reveal-stagger > :nth-child(3) { --stagger: 120ms; }
+  /* verdict cards arrive like the app's notifications: from above, in turn */
+  .js .card-demo-grid.reveal-stagger > * { transform: translateY(-14px); }
+  .card-demo-grid.reveal-stagger > :nth-child(2) { --stagger: 120ms; }
+  .card-demo-grid.reveal-stagger > :nth-child(3) { --stagger: 240ms; }
+
+  /* hero HUD: the offer "arrives" on load, from CSS alone */
+  @keyframes hud-in { from { opacity: 0; transform: translateY(12px) scale(0.98); } }
+  .hud { animation: hud-in 0.5s var(--ease-out) 0.15s both; }
 
   /* problem */
   .problem { background: var(--surface); border-bottom: 1px solid var(--border); }
@@ -485,6 +530,26 @@
     align-items: start;
   }
   .how-item:last-child { border-bottom: 1px solid var(--border); }
+  /* a line runs 01 → 02 → 03 and fills as the page scrolls (JS sets the scale) */
+  .how-list { position: relative; }
+  .how-track {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(clamp(4rem, 8vw, 6.5rem) + clamp(1.2rem, 3vw, 2.5rem) / 2);
+    width: 1px;
+    background: var(--border);
+    pointer-events: none;
+  }
+  .how-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  .js .how-item .step-no { color: var(--ink-faint); transition: color 0.3s ease; }
+  .js .how-item.reached .step-no { color: var(--accent); }
   .how-item .step-no {
     font-family: var(--font-mono);
     font-size: clamp(2rem, 4vw, 3rem);
@@ -573,7 +638,7 @@
     box-shadow: 0 24px 60px -26px var(--shadow);
     position: relative;
     cursor: zoom-in;
-    transition: transform 0.18s ease, border-color 0.2s ease;
+    transition: transform 0.16s var(--ease-out), border-color 0.2s ease;
   }
   .phone::before {
     content: "";
@@ -587,11 +652,15 @@
     border-radius: 0 0 0.5rem 0.5rem;
     z-index: 2;
   }
-  .phone:hover, .phone:focus-visible {
+  .phone:focus-visible {
     transform: translateY(-4px);
     border-color: var(--accent);
     outline: none;
   }
+  @media (hover: hover) and (pointer: fine) {
+    .phone:hover { transform: translateY(-4px); border-color: var(--accent); }
+  }
+  .phone:active { transform: scale(0.98); transition-duration: 0.1s; }
   .phone img {
     display: block;
     width: 100%;
@@ -676,6 +745,8 @@
     transition: opacity 0.22s ease;
   }
   .lightbox.open { opacity: 1; pointer-events: auto; }
+  .lightbox img { transform: scale(0.96); transition: transform 0.22s var(--ease-out); }
+  .lightbox.open img { transform: none; }
   .lightbox img {
     max-width: min(400px, 90vw);
     max-height: 80vh;
@@ -878,6 +949,9 @@
   .cta-box .lede { color: var(--ink-muted); margin-top: 0.8rem; max-width: 40ch; font-size: var(--fs-body-lg); position: relative; }
   .cta-form { position: relative; }
   .cta-form .hero-form { max-width: 22rem; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 0.7rem; }
+  .btn-play { padding: 0.85rem 1.4rem; font-size: 1rem; }
+  .play-icon { width: 1.05em; height: 1.05em; fill: currentColor; flex: none; }
 
   footer {
     border-top: 1px solid var(--border);
@@ -895,10 +969,18 @@
   footer a { text-decoration: underline; text-underline-offset: 3px; }
   footer a:hover { color: var(--accent); }
 
+  /* reduced motion: keep fades and color changes, drop every movement */
   @media (prefers-reduced-motion: reduce) {
-    .reveal { opacity: 1; transform: none; transition: none; }
+    .reveal,
+    .reveal-stagger > * { transition: opacity 0.2s ease; }
+    .js .reveal,
+    .js .reveal-stagger > *,
+    .js .card-demo-grid.reveal-stagger > *,
+    .btn, .phone, .lightbox img { transform: none !important; }
+    .hud { animation: hud-fade 0.2s ease both; }
+    @keyframes hud-fade { from { opacity: 0; } }
     .hud-top .live::before { animation: none; }
-    .phone, .lightbox, .carousel-nav { transition: none; }
+    .hud-timer { display: none; }
   }
 </style>
 </head>
@@ -913,7 +995,7 @@
         <span>Um produto TEVOX</span>
       </a>
     </div>
-    <a href="#lista" class="btn btn-primary btn-sm">Entrar na lista</a>
+    <a href="https://play.google.com/store/apps/details?id=com.radarcarioca" class="btn btn-primary btn-sm" target="_blank" rel="noopener">Baixar o app</a>
   </div>
 </header>
 
@@ -925,17 +1007,14 @@
       <span class="eyebrow">Para motoristas de app no Rio</span>
       <h1><span class="hl-safe">Lucro real.</span> <span class="hl-risk">Risco na tela.</span> Decisão na hora.</h1>
       <p class="hero-sub">O Radar Carioca lê a oferta de corrida do Uber e da 99 assim que ela aparece, calcula quanto sobra de verdade depois do custo — e avisa se o destino cai numa área de risco monitorada. Você decide em segundos, sem tirar o olho da estrada.</p>
-      <form class="hero-form" data-waitlist-form action="https://formspree.io/f/xppavjwz" method="POST">
-        <input type="hidden" name="_subject" value="Radar Carioca — lista de espera">
-        <input type="hidden" name="origem" value="hero">
-        <input class="field" type="email" name="email" placeholder="seu@email.com" required aria-label="Seu e-mail">
-        <button class="btn btn-primary" type="submit">Quero ser avisado</button>
-      </form>
-      <p class="form-status" data-status role="status"></p>
-      <p class="form-note">Ainda em desenvolvimento. Sem spam — só um aviso quando abrir.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-play" href="https://play.google.com/store/apps/details?id=com.radarcarioca" target="_blank" rel="noopener"><svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 5 3.5z"/></svg> Baixar na Google Play</a>
+        <a class="btn btn-ghost" href="#como-funciona">Como funciona</a>
+      </div>
+      <p class="form-note">Disponível para Android na Google Play.</p>
     </div>
 
-    <div class="hud reveal">
+    <div class="hud" data-state="caution">
       <div class="hud-top">
         <span>Oferta capturada</span>
         <span class="live">ao vivo</span>
@@ -957,6 +1036,7 @@
         <span>Destino em zona de atenção — reforce o cuidado</span>
       </div>
       <p class="hud-caption">Exemplo ilustrativo de leitura de oferta</p>
+      <span class="hud-timer" aria-hidden="true"></span>
     </div>
   </div>
 </section>
@@ -967,7 +1047,7 @@
       <span class="eyebrow">O problema</span>
       <h2>Cada oferta é uma aposta às cegas</h2>
     </div>
-    <div class="problem-grid reveal">
+    <div class="problem-grid reveal reveal-stagger">
       <div class="problem-card">
         <span class="num">01</span>
         <p class="stmt">O valor na tela não é o que sobra</p>
@@ -994,7 +1074,7 @@
       <h2>Cada oferta chega com o veredito na hora</h2>
       <p class="lede">Você define sua meta de R$ por km. Assim que a oferta aparece, o card mostra o resultado com uma cor — sem precisar abrir o app pra fazer conta.</p>
     </div>
-    <div class="card-demo-grid reveal">
+    <div class="card-demo-grid reveal reveal-stagger">
       <div class="mini-card mini-card--safe">
         <div class="mini-card-top">
           <span class="mini-badge">Boa corrida</span>
@@ -1029,6 +1109,7 @@
       <p class="lede">Tudo acontece na tela do seu celular, no exato momento em que a oferta chega — antes de você tocar em aceitar.</p>
     </div>
     <div class="how-list">
+      <span class="how-track" aria-hidden="true"><span class="how-fill"></span></span>
       <div class="how-item reveal">
         <span class="step-no">01</span>
         <div>
@@ -1197,7 +1278,7 @@
       </details>
       <details class="faq-item">
         <summary>Com quais apps o Radar Carioca funciona?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <p>Uber, 99 e inDriver, por enquanto. Estamos ampliando a compatibilidade — se você usa outro app de corrida, deixe seu e-mail na lista de espera e conta pra gente qual é.</p>
+        <p>Uber, 99 e inDriver, por enquanto. Estamos ampliando a compatibilidade — se você usa outro app de corrida, <a href="#" data-email-link>mande um e-mail</a> e conta pra gente qual é.</p>
       </details>
       <details class="faq-item">
         <summary>Funciona no iPhone (iOS)?<span class="faq-icon" aria-hidden="true"></span></summary>
@@ -1213,7 +1294,7 @@
       </details>
       <details class="faq-item">
         <summary>O Radar Carioca vai ter custo?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <p>Ainda estamos definindo os planos. Quem entra na lista de espera é avisado em primeira mão sobre preços e condições assim que o app lançar.</p>
+        <p>Os planos e condições atuais estão na página do app na <a href="https://play.google.com/store/apps/details?id=com.radarcarioca" target="_blank" rel="noopener">Google Play</a>.</p>
       </details>
     </div>
   </div>
@@ -1223,18 +1304,12 @@
   <div class="wrap">
     <div class="cta-box">
       <div>
-        <span class="eyebrow">Lançamento</span>
-        <h2>O Radar Carioca ainda está sendo construído</h2>
-        <p class="lede">Deixe seu e-mail e a gente avisa assim que abrir para os primeiros motoristas testarem.</p>
+        <span class="eyebrow">Disponível agora</span>
+        <h2>O Radar Carioca já está na Google Play</h2>
+        <p class="lede">Instale no seu Android e defina sua meta de R$ por km antes da próxima corrida.</p>
       </div>
       <div class="cta-form">
-        <form class="hero-form" data-waitlist-form action="https://formspree.io/f/xppavjwz" method="POST">
-          <input type="hidden" name="_subject" value="Radar Carioca — lista de espera">
-          <input type="hidden" name="origem" value="cta-final">
-          <input class="field" type="email" name="email" placeholder="seu@email.com" required aria-label="Seu e-mail">
-          <button class="btn btn-primary" type="submit">Avise-me</button>
-        </form>
-        <p class="form-status" data-status role="status"></p>
+        <a class="btn btn-primary btn-play" href="https://play.google.com/store/apps/details?id=com.radarcarioca" target="_blank" rel="noopener"><svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 5 3.5z"/></svg> Baixar na Google Play</a>
       </div>
     </div>
   </div>
@@ -1242,7 +1317,7 @@
 
 <footer>
   <div class="wrap">
-    <span>© 2026 Radar Carioca — um produto <a href="https://tevox.co" target="_blank" rel="noopener">TEVOX</a>, em desenvolvimento no Rio de Janeiro.</span>
+    <span>© 2026 Radar Carioca — um produto <a href="https://tevox.co" target="_blank" rel="noopener">TEVOX</a>, feito no Rio de Janeiro.</span>
     <a href="#" data-email-link>Fale com a gente</a>
   </div>
 </footer>
@@ -1314,40 +1389,114 @@
     revealEls.forEach(function (el) { io.observe(el); });
   }
 
-  /* ---------- HUD count-up ---------- */
-  var counted = false;
-  function runCount() {
-    if (counted) return;
-    counted = true;
-    document.querySelectorAll("[data-count]").forEach(function (el) {
-      var to = parseFloat(el.getAttribute("data-to"));
-      if (reduceMotion) {
-        el.textContent = "R$ " + to.toFixed(2).replace(".", ",");
-        return;
-      }
-      var start = null;
-      var dur = 900;
-      function step(ts) {
-        if (!start) start = ts;
-        var p = Math.min(1, (ts - start) / dur);
-        var eased = 1 - Math.pow(1 - p, 3);
-        var val = to * eased;
-        el.textContent = "R$ " + val.toFixed(2).replace(".", ",");
-        if (p < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-    });
-  }
+  /* ---------- HUD: counts up, then cycles through example offers ---------- */
+  var OFFERS = [
+    { state: "caution", vals: [23.90, 6.10, 17.80], badge: "Destino em zona de atenção — reforce o cuidado" },
+    { state: "safe", vals: [31.40, 7.85, 23.55], badge: "Destino sem alerta — boa corrida" },
+    { state: "danger", vals: [9.80, 6.35, 3.45], badge: "Abaixo da sua meta de R$/km — melhor recusar" }
+  ];
+  var hudState = OFFERS[0].state; // the radar below lights a blip to match
+  var onHudState = null;
+
   var hud = document.querySelector(".hud");
-  if (hud && "IntersectionObserver" in window) {
-    var hudIo = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) { runCount(); hudIo.disconnect(); }
+  var countEls = hud ? hud.querySelectorAll("[data-count]") : [];
+  var shown = [0, 0, 0];
+  function fmt(v) { return "R$ " + v.toFixed(2).replace(".", ","); }
+  function countTo(vals, dur) {
+    var from = shown.slice();
+    shown = vals.slice();
+    if (reduceMotion) {
+      for (var i = 0; i < countEls.length; i++) countEls[i].textContent = fmt(vals[i]);
+      return;
+    }
+    var start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var p = Math.min(1, (ts - start) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      for (var i = 0; i < countEls.length; i++) {
+        countEls[i].textContent = fmt(from[i] + (vals[i] - from[i]) * eased);
+      }
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  if (hud) {
+    var badge = hud.querySelector(".hud-badge");
+    var badgeText = badge.querySelector("span:last-child");
+    var timer = hud.querySelector(".hud-timer");
+    var offerIdx = 0;
+
+    var restartTimer = function () {
+      timer.classList.remove("run");
+      void timer.offsetWidth; // restart the CSS animation
+      timer.classList.add("run");
+    };
+    var showOffer = function (i) {
+      var o = OFFERS[i];
+      badge.classList.add("swap");
+      setTimeout(function () {
+        badgeText.textContent = o.badge;
+        hud.setAttribute("data-state", o.state);
+        badge.classList.remove("swap");
+        hudState = o.state;
+        if (onHudState) onHudState(o.state);
+      }, 150);
+      countTo(o.vals, 700);
+    };
+
+    var started = false;
+    var start = function () {
+      if (started) return;
+      started = true;
+      countTo(OFFERS[0].vals, 900);
+      if (reduceMotion) return; // stays on the first offer
+      restartTimer();
+      // the timer bar drives the cycle, so hover/focus/off-screen pausing it pauses everything
+      timer.addEventListener("animationend", function () {
+        offerIdx = (offerIdx + 1) % OFFERS.length;
+        showOffer(offerIdx);
+        restartTimer();
       });
-    }, { threshold: 0.4 });
-    hudIo.observe(hud);
-  } else {
-    runCount();
+    };
+
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          hud.classList.toggle("paused", !entry.isIntersecting);
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.4) start();
+        });
+      }, { threshold: [0, 0.4] }).observe(hud);
+    } else {
+      start();
+    }
+  }
+
+  /* ---------- how it works: line fills 01 → 02 → 03 with scroll ---------- */
+  var howList = document.querySelector(".how-list");
+  var howFill = document.querySelector(".how-fill");
+  if (howList && howFill) {
+    var howItems = howList.querySelectorAll(".how-item");
+    var howQueued = false;
+    var updateHow = function () {
+      howQueued = false;
+      var r = howList.getBoundingClientRect();
+      var line = window.innerHeight * 0.6; // the "reading line" across the screen
+      var p = Math.max(0, Math.min(1, (line - r.top) / r.height));
+      howFill.style.transform = "scaleY(" + p + ")";
+      howItems.forEach(function (item) {
+        item.classList.toggle("reached", item.getBoundingClientRect().top < line);
+      });
+    };
+    var queueHow = function () {
+      if (howQueued) return;
+      howQueued = true;
+      requestAnimationFrame(updateHow);
+    };
+    window.addEventListener("scroll", queueHow, { passive: true });
+    window.addEventListener("resize", queueHow, { passive: true });
+    updateHow();
   }
 
   /* ---------- app screens carousel ---------- */
@@ -1420,7 +1569,10 @@
       if (!lb.classList.contains("open")) return;
       lb.classList.remove("open");
       document.body.style.overflow = "";
-      lbImg.removeAttribute("src");
+      // keep the image through the 220ms exit, then drop it
+      setTimeout(function () {
+        if (!lb.classList.contains("open")) lbImg.removeAttribute("src");
+      }, 220);
       if (lastFocus) lastFocus.focus();
     }
 
@@ -1619,9 +1771,27 @@
       ctx.lineTo(Math.cos(radar.angle) * maxR, Math.sin(radar.angle) * maxR);
       ctx.stroke();
 
+      // blip 0 is "the destination" of the offer in the hero HUD: it takes the
+      // offer's colour (caution / danger) and stays lit while that offer shows
+      var alertCol = hudState === "danger" ? cssColor("--danger", "#EF4444")
+        : hudState === "caution" ? cssColor("--caution", "#EAB308") : null;
       for (var b = 0; b < radar.blips.length; b++) {
         var bl = radar.blips[b];
         var diff = angleDiff(radar.angle, bl.a);
+        if (b === 0 && alertCol) {
+          ctx.globalAlpha = 0.95;
+          ctx.fillStyle = alertCol;
+          ctx.beginPath();
+          ctx.arc(bl.x * dpr, bl.y * dpr, 5 * dpr, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 0.45;
+          ctx.strokeStyle = alertCol;
+          ctx.lineWidth = 1 * dpr;
+          ctx.beginPath();
+          ctx.arc(bl.x * dpr, bl.y * dpr, 11 * dpr, 0, Math.PI * 2);
+          ctx.stroke();
+          continue;
+        }
         var glow = Math.max(0, 1 - Math.abs(diff) / 0.6);
         var pulse = 0.5 + 0.5 * Math.sin(performance.now() / 900 + bl.phase);
         var dxm = bl.x - mouseLocalX, dym = bl.y - mouseLocalY;
@@ -1717,18 +1887,43 @@
       drawPings(gold, goldBright);
     }
 
-    function step() {
-      radar.angle += 0.007;
+    // time-based, so a 120Hz screen doesn't spin the sweep twice as fast;
+    // stops entirely while the hero is scrolled out of view
+    var running = false, lastTs = 0, heroVisible = true;
+    function step(ts) {
+      if (!heroVisible) { running = false; return; }
+      var dt = lastTs ? Math.min(50, ts - lastTs) : 16;
+      lastTs = ts;
+      radar.angle += 0.007 * dt / 16.67;
       for (var i = 0; i < traces.length; i++) {
-        traces[i].pulseT += traces[i].pulseSpeed * 16;
+        traces[i].pulseT += traces[i].pulseSpeed * dt;
         if (traces[i].pulseT > 1) traces[i].pulseT = 0;
       }
       draw();
       requestAnimationFrame(step);
     }
+    function run() {
+      if (running || reduceMotion) return;
+      running = true;
+      lastTs = 0;
+      requestAnimationFrame(step);
+    }
 
     resize();
-    window.addEventListener("resize", resize);
+    // phones fire resize whenever the URL bar slides; only reseed on real changes
+    var lastW = window.innerWidth, lastH = window.innerHeight;
+    window.addEventListener("resize", function () {
+      var w = window.innerWidth, h = window.innerHeight;
+      if (w === lastW && Math.abs(h - lastH) < 120) return;
+      lastW = w; lastH = h;
+      resize();
+      if (reduceMotion) draw();
+    });
+    onHudState = function (state) {
+      if (reduceMotion) { draw(); return; }
+      var bl = radar.blips[0];
+      if (bl && state !== "safe") spawnPing(radar.cx + bl.x, radar.cy + bl.y, 0.9);
+    };
 
     if (reduceMotion) {
       radar.angle = Math.PI / 4;
@@ -1754,7 +1949,13 @@
         var rect = heroEl.getBoundingClientRect();
         spawnPing(ev.clientX - rect.left, ev.clientY - rect.top, 1);
       });
-      requestAnimationFrame(step);
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (entries) {
+          heroVisible = entries[0].isIntersecting;
+          if (heroVisible) run();
+        }).observe(heroEl);
+      }
+      run();
     }
   }
 })();
